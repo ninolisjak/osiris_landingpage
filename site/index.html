@@ -184,7 +184,7 @@
       </div>
       <div style="width:1px;height:16px;background:var(--line)"></div>
       <div style="display:flex;align-items:center;gap:16px">
-        <a id="nav-sc" href="#" class="sic" aria-label="SoundCloud"><svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M11.56 8.87V17h8.76c1.5-.01 2.68-1.2 2.68-2.69a2.68 2.68 0 0 0-2.49-2.68 4.37 4.37 0 0 0-4.22-3.27 4.4 4.4 0 0 0-4.73 2.51zM0 14.5a1.5 1.5 0 0 0 3 0v-1a1.5 1.5 0 0 0-3 0v1zm4-2.25a1.25 1.25 0 0 0-2.5 0v2.5a1.25 1.25 0 0 0 2.5 0v-2.5zm2-1.5A1.25 1.25 0 0 0 3.5 12v3a1.25 1.25 0 0 0 2.5 0v-3A1.25 1.25 0 0 0 6 10.75zm2.25-1A1.25 1.25 0 0 0 7 11v4.25a1.25 1.25 0 0 0 2.5 0V11a1.25 1.25 0 0 0-1.25-1.25zM11 10a1.25 1.25 0 0 0-1.25 1.25V17H11V10z"/></svg></a>
+        <a id="nav-sc" href="#" class="sic" aria-label="SoundCloud"><svg width="21" height="15" viewBox="0 0 21 15" fill="currentColor"><rect x="0" y="7.5" width="1.5" height="5" rx=".75"/><rect x="3" y="5" width="1.5" height="7.5" rx=".75"/><rect x="6" y="6" width="1.5" height="6.5" rx=".75"/><rect x="9" y="3" width="1.5" height="9.5" rx=".75"/><rect x="12" y="5" width="1.5" height="7.5" rx=".75"/><path d="M15 12.5V7a3.5 3.5 0 0 1 2.5-1 3.5 3.5 0 0 1 3.5 3.5 2 2 0 0 1 0 4H15v-.5-.5z"/></svg></a>
         <a id="nav-ig" href="#" class="sic" aria-label="Instagram"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><rect x="3" y="3" width="18" height="18" rx="5.5"/><circle cx="12" cy="12" r="4.2"/><circle cx="17.4" cy="6.6" r="1.15" fill="currentColor" stroke="none"/></svg></a>
       </div>
       <button class="tgl" id="themeToggle" aria-label="Toggle theme">
@@ -602,7 +602,7 @@ class Component extends DCLogic {
   renderFooterSocials(links) {
     const el = document.getElementById('footer-socials');
     if (!el) return;
-    const scSVG = `<svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M11.56 8.87V17h8.76c1.5-.01 2.68-1.2 2.68-2.69a2.68 2.68 0 0 0-2.49-2.68 4.37 4.37 0 0 0-4.22-3.27 4.4 4.4 0 0 0-4.73 2.51zM0 14.5a1.5 1.5 0 0 0 3 0v-1a1.5 1.5 0 0 0-3 0v1zm4-2.25a1.25 1.25 0 0 0-2.5 0v2.5a1.25 1.25 0 0 0 2.5 0v-2.5zm2-1.5A1.25 1.25 0 0 0 3.5 12v3a1.25 1.25 0 0 0 2.5 0v-3A1.25 1.25 0 0 0 6 10.75zm2.25-1A1.25 1.25 0 0 0 7 11v4.25a1.25 1.25 0 0 0 2.5 0V11a1.25 1.25 0 0 0-1.25-1.25zM11 10a1.25 1.25 0 0 0-1.25 1.25V17H11V10z"/></svg>`;
+    const scSVG = `<svg width="21" height="15" viewBox="0 0 21 15" fill="currentColor"><rect x="0" y="7.5" width="1.5" height="5" rx=".75"/><rect x="3" y="5" width="1.5" height="7.5" rx=".75"/><rect x="6" y="6" width="1.5" height="6.5" rx=".75"/><rect x="9" y="3" width="1.5" height="9.5" rx=".75"/><rect x="12" y="5" width="1.5" height="7.5" rx=".75"/><path d="M15 12.5V7a3.5 3.5 0 0 1 2.5-1 3.5 3.5 0 0 1 3.5 3.5 2 2 0 0 1 0 4H15v-.5-.5z"/></svg>`;
     const igSVG = `<svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><rect x="3" y="3" width="18" height="18" rx="5.5"/><circle cx="12" cy="12" r="4.2"/><circle cx="17.4" cy="6.6" r="1.15" fill="currentColor" stroke="none"/></svg>`;
     const socials = [
       { key: 'soundcloud', label: 'SoundCloud', icon: scSVG },
