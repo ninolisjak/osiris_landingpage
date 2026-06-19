@@ -423,8 +423,8 @@ class Component extends DCLogic {
     setTimeout(() => document.querySelectorAll('.rev:not(.in)').forEach(el => el.classList.add('in')), 1600);
   }
 
-  renderSiteData() {
-    const d = getOsirisData();
+  async renderSiteData() {
+    const d = await getOsirisData();
 
     // Hero
     const est = document.getElementById('hero-est');

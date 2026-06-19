@@ -106,6 +106,29 @@ select option{background:#111;color:var(--tHi)}
 </head>
 <body>
 
+<!-- Password gate -->
+<div id="gate" style="position:fixed;inset:0;z-index:9999;background:#0a0a0a;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:20px">
+  <img src="uploads/osiris-word.svg" alt="Osiris" style="height:22px;opacity:.6;margin-bottom:8px">
+  <input id="gate-pw" type="password" placeholder="Password" autofocus
+    style="background:#161616;border:1px solid #222;color:#f2f0ec;font-family:'Space Mono',monospace;font-size:13px;padding:11px 18px;border-radius:4px;outline:none;width:260px;text-align:center;letter-spacing:.1em"
+    onkeydown="if(event.key==='Enter')checkPw()">
+  <button onclick="checkPw()"
+    style="background:#c2453a;color:#fff;border:none;padding:10px 28px;font-family:'Space Mono',monospace;font-size:10px;letter-spacing:.2em;text-transform:uppercase;border-radius:4px;cursor:pointer">Enter</button>
+  <p id="gate-err" style="font-family:'Space Mono',monospace;font-size:10px;color:#c2453a;letter-spacing:.1em;opacity:0">Wrong password</p>
+</div>
+<script>
+const ADMIN_PASSWORD = 'osiris2026';
+function checkPw() {
+  if (document.getElementById('gate-pw').value === ADMIN_PASSWORD) {
+    document.getElementById('gate').style.display = 'none';
+  } else {
+    const err = document.getElementById('gate-err');
+    err.style.opacity = '1';
+    setTimeout(() => err.style.opacity = '0', 2000);
+  }
+}
+</script>
+
 <header class="admin-header">
   <div class="logo">
     <img src="uploads/osiris-word.svg" alt="Osiris">
@@ -253,7 +276,7 @@ select option{background:#111;color:var(--tHi)}
 <div class="toast" id="toast"></div>
 
 <script>
-let data = getOsirisData();
+let data = JSON.parse(JSON.stringify(OSIRIS_DEFAULTS));
 
 // ─── Tab switching ───────────────────────────────────────────
 function switchTab(name) {
@@ -275,23 +298,31 @@ function toast(msg) {
 function uid() { return Math.random().toString(36).slice(2,9); }
 
 // ─── Save ────────────────────────────────────────────────────
-function saveAll() {
+async function saveAll() {
   collectConfig();
   collectReleases();
   collectSpotlight();
   collectShows();
   collectMixes();
   collectVideos();
-  saveOsirisData(data);
-  toast('Saved — reload the site to see changes.');
+  try {
+    await saveOsirisData(data);
+    toast('Saved — changes are now live on the site.');
+  } catch(e) {
+    toast('Error saving: ' + e.message);
+  }
 }
 
 // ─── Reset ───────────────────────────────────────────────────
-function handleReset() {
+async function handleReset() {
   if (!confirm('Reset all data to defaults? This cannot be undone.')) return;
-  data = resetOsirisData();
-  populateAll();
-  toast('Data reset to defaults.');
+  try {
+    data = await resetOsirisData();
+    populateAll();
+    toast('Data reset to defaults.');
+  } catch(e) {
+    toast('Error resetting: ' + e.message);
+  }
 }
 
 // ─── Config ──────────────────────────────────────────────────
@@ -614,7 +645,7 @@ function populateAll() {
   renderVideos();
 }
 
-populateAll();
+getOsirisData().then(d => { data = d; populateAll(); });
 </script>
 </body>
 </html>
