@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Osiris — Tickets</title>
+<script src="./data.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{
+  --ac:#c2453a;--acr:194,69,58;
+  --bg:#0a0a0a;--panel:#0e0e0e;--art:#0d0d0d;--line:#1d1d1d;--lineSoft:#181818;
+  --tHi:#f2f0ec;--tStrong:#cdc9c2;--tMid:#8c8a86;--tLo:#565451;--tFaint:#454239;--tGhost:#2e2e2c;
+  --grainOp:.05;
+  background:var(--bg);color:var(--tHi);font-family:'Space Grotesk',sans-serif;min-height:100vh;overflow-x:hidden
+}
+
+@keyframes fadeUp{from{opacity:0;transform:translateY(22px)}to{opacity:1;transform:translateY(0)}}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+.fu{animation:fadeUp .9s cubic-bezier(.16,1,.3,1) both}
+.fu1{animation-delay:.05s}.fu2{animation-delay:.18s}.fu3{animation-delay:.32s}.fu4{animation-delay:.46s}
+
+/* grain + glow */
+#grain{position:fixed;inset:0;pointer-events:none;z-index:250;opacity:var(--grainOp);mix-blend-mode:overlay;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E")}
+.glow{position:fixed;inset:0;pointer-events:none;z-index:0;background:radial-gradient(ellipse 60% 50% at 80% 8%, rgba(var(--acr),.08), transparent 60%),radial-gradient(ellipse 55% 45% at 12% 92%, rgba(var(--acr),.06), transparent 60%)}
+
+/* top bar */
+.bar{position:sticky;top:0;z-index:50;height:64px;display:flex;align-items:center;justify-content:space-between;padding:0 40px;border-bottom:1px solid var(--line);background:rgba(10,10,10,.85);backdrop-filter:blur(16px)}
+.bar img{height:20px;opacity:.95}
+.back{display:inline-flex;align-items:center;gap:10px;color:var(--tMid);text-decoration:none;font-family:'Space Mono',monospace;font-size:11px;letter-spacing:.16em;text-transform:uppercase;transition:color .25s,gap .25s}
+.back:hover{color:var(--ac);gap:14px}
+
+.wrap{max-width:840px;margin:0 auto;padding:72px 24px 120px;position:relative;z-index:1}
+
+/* eyebrow */
+.eyebrow{display:flex;align-items:center;gap:16px;margin-bottom:36px}
+.eyebrow span{font-family:'Space Mono',monospace;font-size:11px;letter-spacing:.32em;color:var(--tLo);text-transform:uppercase}
+.eyebrow .ln{flex:1;height:1px;background:linear-gradient(to right,rgba(var(--acr),.3),transparent)}
+
+/* show card */
+.show-card{border:1px solid var(--line);background:var(--panel);padding:38px 40px;margin-bottom:48px;position:relative;overflow:hidden}
+.show-card::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse 50% 120% at 90% 10%, rgba(var(--acr),.08), transparent 60%);pointer-events:none}
+.show-venue{font-family:'Space Grotesk',sans-serif;font-weight:600;font-size:clamp(28px,5vw,46px);letter-spacing:-.02em;line-height:1.05;color:var(--tHi);margin-bottom:18px;position:relative}
+.show-meta{display:flex;flex-wrap:wrap;gap:14px 32px;position:relative}
+.meta-item{display:flex;flex-direction:column;gap:5px}
+.meta-item .k{font-family:'Space Mono',monospace;font-size:9px;letter-spacing:.2em;color:var(--tFaint);text-transform:uppercase}
+.meta-item .v{font-family:'Space Mono',monospace;font-size:13px;letter-spacing:.06em;color:var(--tStrong)}
+
+/* form */
+.form-title{font-family:'Space Grotesk',sans-serif;font-weight:500;font-size:22px;color:var(--tHi);margin-bottom:6px}
+.form-sub{font-family:'Space Mono',monospace;font-size:11px;letter-spacing:.06em;color:var(--tLo);line-height:1.9;margin-bottom:34px}
+label{display:block;font-family:'Space Mono',monospace;font-size:9px;letter-spacing:.2em;text-transform:uppercase;color:var(--tLo);margin-bottom:8px}
+input,textarea,select{width:100%;background:var(--art);border:1px solid var(--line);color:var(--tHi);font-family:'Space Mono',monospace;font-size:13px;padding:13px 16px;outline:none;transition:border-color .25s,box-shadow .25s;appearance:none;border-radius:2px}
+input:focus,textarea:focus,select:focus{border-color:rgba(var(--acr),.55);box-shadow:0 0 0 3px rgba(var(--acr),.08)}
+input::placeholder,textarea::placeholder{color:var(--tFaint)}
+textarea{resize:vertical;min-height:90px;line-height:1.8}
+select option{background:#0e0e0e;color:var(--tHi)}
+.field{margin-bottom:22px}
+.row-2{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+@media(max-width:560px){.row-2{grid-template-columns:1fr}.show-card{padding:30px 24px}.bar{padding:0 20px}}
+
+.qty{display:flex;align-items:center;gap:0;width:fit-content;border:1px solid var(--line);border-radius:2px;overflow:hidden}
+.qty button{width:44px;height:46px;background:var(--art);border:none;color:var(--tMid);font-size:18px;cursor:pointer;transition:background .2s,color .2s}
+.qty button:hover{background:rgba(var(--acr),.12);color:var(--ac)}
+.qty input{width:64px;text-align:center;border:none;border-left:1px solid var(--line);border-right:1px solid var(--line);border-radius:0}
+.qty input:focus{box-shadow:none;border-color:var(--line)}
+
+.submit{width:100%;padding:16px;background:var(--ac);color:#fff;border:none;border-radius:2px;cursor:pointer;font-family:'Space Mono',monospace;font-size:12px;letter-spacing:.22em;text-transform:uppercase;transition:background .25s,transform .1s,letter-spacing .25s;margin-top:8px}
+.submit:hover{background:#d95448;letter-spacing:.28em}
+.submit:active{transform:scale(.99)}
+
+.note{font-family:'Space Mono',monospace;font-size:10px;letter-spacing:.06em;color:var(--tFaint);line-height:1.9;margin-top:20px;text-align:center}
+
+/* sold out / not found */
+.notice{border:1px solid var(--line);background:var(--panel);padding:48px 40px;text-align:center}
+.notice h2{font-family:'Space Grotesk',sans-serif;font-weight:500;font-size:24px;color:var(--tHi);margin-bottom:12px}
+.notice p{font-family:'Space Mono',monospace;font-size:12px;color:var(--tLo);letter-spacing:.06em;line-height:1.9;margin-bottom:24px}
+.notice a{display:inline-flex;align-items:center;gap:10px;color:var(--ac);text-decoration:none;font-family:'Space Mono',monospace;font-size:11px;letter-spacing:.16em;text-transform:uppercase}
+.notice a:hover{gap:14px}
+
+/* success overlay */
+.success{display:none;border:1px solid rgba(var(--acr),.4);background:var(--panel);padding:48px 40px;text-align:center;animation:fadeIn .5s both}
+.success.show{display:block}
+.success .ring{width:56px;height:56px;border:1px solid rgba(var(--acr),.5);border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 24px}
+.success h2{font-family:'Space Grotesk',sans-serif;font-weight:500;font-size:24px;color:var(--tHi);margin-bottom:12px}
+.success p{font-family:'Space Mono',monospace;font-size:12px;color:var(--tMid);letter-spacing:.06em;line-height:1.9}
+
+::selection{background:rgba(var(--acr),.3);color:#fff}
+::-webkit-scrollbar{width:3px}
+::-webkit-scrollbar-track{background:var(--bg)}
+::-webkit-scrollbar-thumb{background:var(--line)}
+</style>
+</head>
+<body>
+<div id="grain"></div>
+<div class="glow"></div>
+
+<div class="bar">
+  <a href="index.html#live" class="back">
+    <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M9 2L4 7l5 5"/></svg>
+    All Shows
+  </a>
+  <a href="index.html#hero"><img src="uploads/osiris-word.svg" alt="OSIRIS"></a>
+</div>
+
+<div class="wrap" id="content"><!-- rendered by JS --></div>
+
+<script>
+(function(){
+  const data = getOsirisData();
+  const params = new URLSearchParams(location.search);
+  const showId = params.get('show');
+  const show = (data.shows || []).find(s => s.id === showId);
+  const content = document.getElementById('content');
+
+  function esc(s){return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/"/g,'&quot;');}
+
+  if (!show) {
+    content.innerHTML = `
+      <div class="notice fu fu1">
+        <h2>Show not found</h2>
+        <p>This event may have passed or the link is incorrect.</p>
+        <a href="index.html#live">View all shows →</a>
+      </div>`;
+    return;
+  }
+
+  if (show.soldOut) {
+    content.innerHTML = `
+      <div class="eyebrow fu fu1"><span>Tickets</span><div class="ln"></div></div>
+      <div class="show-card fu fu2">
+        <div class="show-venue">${esc(show.venue)}</div>
+        <div class="show-meta">
+          <div class="meta-item"><span class="k">Date</span><span class="v">${esc(show.date)}</span></div>
+          <div class="meta-item"><span class="k">Location</span><span class="v">${esc(show.city)}, ${esc(show.country)}</span></div>
+          <div class="meta-item"><span class="k">Status</span><span class="v" style="color:var(--ac)">Sold Out</span></div>
+        </div>
+      </div>
+      <div class="notice fu fu3">
+        <h2>This show is sold out</h2>
+        <p>Join the booking list to be notified if tickets are released.</p>
+        <a href="index.html#booking">Contact for inquiries →</a>
+      </div>`;
+    return;
+  }
+
+  const email = data.config.bookingEmail || '';
+  const artist = data.config.artistName || 'Osiris';
+
+  content.innerHTML = `
+    <div class="eyebrow fu fu1"><span>Reserve Tickets</span><div class="ln"></div></div>
+
+    <div class="show-card fu fu2">
+      <div class="show-venue">${esc(show.venue)}</div>
+      <div class="show-meta">
+        <div class="meta-item"><span class="k">Date</span><span class="v">${esc(show.date)}</span></div>
+        <div class="meta-item"><span class="k">Location</span><span class="v">${esc(show.city)}, ${esc(show.country)}</span></div>
+        <div class="meta-item"><span class="k">Artist</span><span class="v">${esc(artist)}</span></div>
+      </div>
+    </div>
+
+    <div class="fu fu3" id="form-wrap">
+      <p class="form-title">Booking Request</p>
+      <p class="form-sub">Fill in your details and we'll confirm your reservation by email. No payment is taken now.</p>
+
+      <form id="booking-form">
+        <div class="row-2">
+          <div class="field"><label>Full Name *</label><input type="text" id="f-name" required placeholder="Your name"></div>
+          <div class="field"><label>Email *</label><input type="email" id="f-email" required placeholder="you@email.com"></div>
+        </div>
+        <div class="row-2">
+          <div class="field">
+            <label>Number of Tickets *</label>
+            <div class="qty">
+              <button type="button" onclick="step(-1)">–</button>
+              <input type="number" id="f-qty" value="2" min="1" max="20" required>
+              <button type="button" onclick="step(1)">+</button>
+            </div>
+          </div>
+          <div class="field"><label>Phone (optional)</label><input type="tel" id="f-phone" placeholder="+49 ..."></div>
+        </div>
+        <div class="field"><label>Message (optional)</label><textarea id="f-msg" placeholder="Guest list, accessibility, special requests..."></textarea></div>
+        <button type="submit" class="submit">Send Booking Request →</button>
+        <p class="note">Opens your email app addressed to ${esc(email)}.<br>Your reservation is confirmed once we reply.</p>
+      </form>
+    </div>
+
+    <div class="success fu" id="success">
+      <div class="ring">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--ac)" stroke-width="1.6"><path d="M5 13l4 4L19 7"/></svg>
+      </div>
+      <h2>Request prepared</h2>
+      <p>Your email app should now be open with your booking request.<br>Send it and we'll confirm shortly.</p>
+    </div>`;
+
+  window.step = function(n){
+    const el = document.getElementById('f-qty');
+    let v = parseInt(el.value || '1', 10) + n;
+    v = Math.max(1, Math.min(20, v));
+    el.value = v;
+  };
+
+  document.getElementById('booking-form').addEventListener('submit', function(e){
+    e.preventDefault();
+    const name = document.getElementById('f-name').value.trim();
+    const mail = document.getElementById('f-email').value.trim();
+    const qty = document.getElementById('f-qty').value.trim();
+    const phone = document.getElementById('f-phone').value.trim();
+    const msg = document.getElementById('f-msg').value.trim();
+
+    const subject = `Ticket booking — ${show.venue} (${show.date})`;
+    const body =
+`Booking request for: ${artist}
+
+Show:     ${show.venue}
+Date:     ${show.date}
+Location: ${show.city}, ${show.country}
+
+Name:     ${name}
+Email:    ${mail}
+Phone:    ${phone || '—'}
+Tickets:  ${qty}
+
+Message:
+${msg || '—'}`;
+
+    const href = `mailto:${encodeURIComponent(email)}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+    window.location.href = href;
+
+    document.getElementById('form-wrap').style.display = 'none';
+    document.getElementById('success').classList.add('show');
+    window.scrollTo({top:0,behavior:'smooth'});
+  });
+})();
+</script>
+</body>
+</html>

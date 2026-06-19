@@ -1,0 +1,620 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Osiris — Admin</title>
+<script src="./data.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{background:#0a0a0a;color:#f2f0ec;font-family:'Space Grotesk',sans-serif;min-height:100vh;padding-bottom:80px}
+
+:root{
+  --ac:#c2453a;--acr:194,69,58;
+  --bg:#0a0a0a;--panel:#111;--card:#161616;--border:#222;--border2:#1a1a1a;
+  --tHi:#f2f0ec;--tMid:#8c8a86;--tLo:#565451;--tFaint:#454239;
+}
+
+/* Layout */
+.admin-header{background:#0d0d0d;border-bottom:1px solid var(--border);padding:0 40px;height:60px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100;backdrop-filter:blur(12px)}
+.admin-header h1{font-family:'Space Mono',monospace;font-size:12px;letter-spacing:.3em;text-transform:uppercase;color:var(--tMid)}
+.admin-header .logo{display:flex;align-items:center;gap:12px}
+.admin-header img{height:18px;opacity:.7;filter:invert(0)}
+.main{max-width:960px;margin:0 auto;padding:48px 24px 0}
+
+/* Tabs */
+.tabs{display:flex;gap:2px;margin-bottom:40px;background:var(--panel);padding:4px;border:1px solid var(--border);border-radius:8px;flex-wrap:wrap}
+.tab{flex:1;min-width:90px;padding:8px 16px;border:none;background:transparent;color:var(--tLo);font-family:'Space Mono',monospace;font-size:10px;letter-spacing:.2em;text-transform:uppercase;cursor:pointer;border-radius:5px;transition:background .2s,color .2s;white-space:nowrap}
+.tab:hover{color:var(--tMid)}
+.tab.active{background:var(--card);color:var(--tHi);border:1px solid var(--border)}
+
+/* Section */
+.section{display:none}
+.section.active{display:block}
+.section-title{font-family:'Space Mono',monospace;font-size:10px;letter-spacing:.3em;text-transform:uppercase;color:var(--ac);margin-bottom:28px}
+
+/* Form elements */
+label{display:block;font-family:'Space Mono',monospace;font-size:9px;letter-spacing:.2em;text-transform:uppercase;color:var(--tLo);margin-bottom:7px}
+input,textarea,select{width:100%;background:var(--card);border:1px solid var(--border);color:var(--tHi);font-family:'Space Mono',monospace;font-size:12px;padding:10px 14px;border-radius:4px;outline:none;transition:border-color .2s;appearance:none}
+input:focus,textarea:focus,select:focus{border-color:rgba(var(--acr),.5)}
+input::placeholder,textarea::placeholder{color:var(--tFaint)}
+textarea{resize:vertical;min-height:90px;line-height:1.8}
+select option{background:#111;color:var(--tHi)}
+.field{margin-bottom:22px}
+.row-2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.row-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px}
+@media(max-width:600px){.row-2,.row-3{grid-template-columns:1fr}}
+
+/* Cards (for list items) */
+.item-card{background:var(--card);border:1px solid var(--border);border-radius:6px;padding:20px 24px;margin-bottom:12px;position:relative}
+.item-card:hover{border-color:rgba(var(--acr),.35)}
+.item-card-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;cursor:pointer;user-select:none}
+.item-card-header h3{font-family:'Space Grotesk',sans-serif;font-weight:500;font-size:15px;color:var(--tHi)}
+.item-card-header .meta{font-family:'Space Mono',monospace;font-size:9px;letter-spacing:.12em;color:var(--tLo);text-transform:uppercase;margin-top:3px}
+.item-card-body{display:none}
+.item-card.open .item-card-body{display:block}
+.chevron{color:var(--tFaint);transition:transform .2s;font-size:10px}
+.item-card.open .chevron{transform:rotate(180deg)}
+
+/* Buttons */
+.btn{padding:9px 22px;border-radius:4px;border:none;cursor:pointer;font-family:'Space Mono',monospace;font-size:10px;letter-spacing:.18em;text-transform:uppercase;transition:background .2s,color .2s,transform .1s}
+.btn:active{transform:scale(.98)}
+.btn-primary{background:var(--ac);color:#fff}
+.btn-primary:hover{background:#d95448}
+.btn-ghost{background:transparent;border:1px solid var(--border);color:var(--tMid)}
+.btn-ghost:hover{border-color:rgba(var(--acr),.5);color:var(--tHi)}
+.btn-danger{background:transparent;border:1px solid rgba(var(--acr),.3);color:var(--ac)}
+.btn-danger:hover{background:rgba(var(--acr),.12)}
+.btn-sm{padding:6px 14px;font-size:9px}
+.btn-row{display:flex;gap:10px;margin-top:20px;flex-wrap:wrap}
+.add-btn{display:flex;align-items:center;gap:10px;padding:14px 20px;background:var(--card);border:1px dashed var(--border);border-radius:6px;color:var(--tLo);cursor:pointer;font-family:'Space Mono',monospace;font-size:10px;letter-spacing:.18em;text-transform:uppercase;width:100%;transition:border-color .2s,color .2s;margin-bottom:16px}
+.add-btn:hover{border-color:rgba(var(--acr),.5);color:var(--ac)}
+
+/* Toast */
+.toast{position:fixed;bottom:28px;left:50%;transform:translateX(-50%) translateY(80px);background:var(--card);border:1px solid rgba(var(--acr),.5);color:var(--tHi);padding:12px 28px;font-family:'Space Mono',monospace;font-size:11px;letter-spacing:.12em;border-radius:4px;z-index:9999;transition:transform .35s cubic-bezier(.16,1,.3,1),opacity .35s;opacity:0}
+.toast.show{transform:translateX(-50%) translateY(0);opacity:1}
+
+/* Checkbox */
+.cb-wrap{display:flex;align-items:center;gap:10px;cursor:pointer}
+.cb-wrap input{width:auto;width:16px;height:16px;margin:0;cursor:pointer;accent-color:var(--ac)}
+.cb-wrap span{font-family:'Space Mono',monospace;font-size:11px;color:var(--tMid)}
+
+/* Preview link */
+.preview-bar{background:var(--panel);border:1px solid var(--border);border-radius:4px;padding:10px 16px;display:flex;align-items:center;justify-content:space-between;margin-bottom:36px}
+.preview-bar span{font-family:'Space Mono',monospace;font-size:10px;color:var(--tLo);letter-spacing:.1em}
+.preview-bar a{font-family:'Space Mono',monospace;font-size:10px;color:var(--ac);letter-spacing:.1em;text-decoration:none}
+.preview-bar a:hover{text-decoration:underline}
+
+/* Reset bar */
+.reset-bar{background:rgba(var(--acr),.06);border:1px solid rgba(var(--acr),.2);border-radius:4px;padding:14px 18px;display:flex;align-items:center;justify-content:space-between;margin-bottom:36px;flex-wrap:wrap;gap:12px}
+.reset-bar p{font-family:'Space Mono',monospace;font-size:9px;letter-spacing:.14em;color:var(--tLo);text-transform:uppercase}
+
+/* Art type picker */
+.art-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:8px}
+.art-opt{border:1px solid var(--border);border-radius:4px;padding:6px;cursor:pointer;transition:border-color .2s;background:var(--panel)}
+.art-opt:hover{border-color:rgba(var(--acr),.4)}
+.art-opt.selected{border-color:var(--ac);background:rgba(var(--acr),.08)}
+.art-opt svg{display:block;width:100%;height:auto}
+.art-opt span{display:block;font-family:'Space Mono',monospace;font-size:7px;letter-spacing:.1em;text-transform:uppercase;color:var(--tFaint);text-align:center;margin-top:4px}
+
+/* Drag handle */
+.drag-handle{cursor:grab;color:var(--tFaint);padding:0 6px;font-size:16px;line-height:1;user-select:none}
+.drag-handle:active{cursor:grabbing}
+</style>
+</head>
+<body>
+
+<header class="admin-header">
+  <div class="logo">
+    <img src="uploads/osiris-word.svg" alt="Osiris">
+    <span style="font-family:'Space Mono',monospace;font-size:9px;letter-spacing:.3em;color:rgba(var(--acr),.8);text-transform:uppercase">Admin</span>
+  </div>
+  <div style="display:flex;gap:10px;align-items:center">
+    <button class="btn btn-primary btn-sm" onclick="saveAll()">Save All</button>
+    <a href="index.html" target="_blank" style="text-decoration:none"><button class="btn btn-ghost btn-sm">View Site →</button></a>
+  </div>
+</header>
+
+<main class="main">
+
+  <div class="preview-bar">
+    <span>Changes are saved to browser storage and reflected on the site instantly.</span>
+    <a href="index.html" target="_blank">Open Site Preview →</a>
+  </div>
+
+  <div class="reset-bar">
+    <p>Reset all data to defaults (cannot be undone)</p>
+    <button class="btn btn-danger btn-sm" onclick="handleReset()">Reset to Defaults</button>
+  </div>
+
+  <div class="tabs">
+    <button class="tab active" onclick="switchTab('config')">Site Config</button>
+    <button class="tab" onclick="switchTab('releases')">Releases</button>
+    <button class="tab" onclick="switchTab('spotlight')">Spotlight</button>
+    <button class="tab" onclick="switchTab('shows')">Shows</button>
+    <button class="tab" onclick="switchTab('mixes')">Mixes</button>
+    <button class="tab" onclick="switchTab('videos')">Videos</button>
+  </div>
+
+  <!-- ══ CONFIG ══ -->
+  <div id="tab-config" class="section active">
+    <p class="section-title">Site Configuration</p>
+
+    <div style="background:var(--card);border:1px solid var(--border);border-radius:6px;padding:28px;margin-bottom:20px">
+      <p style="font-family:'Space Mono',monospace;font-size:9px;letter-spacing:.24em;text-transform:uppercase;color:var(--tLo);margin-bottom:20px">Identity</p>
+      <div class="row-2">
+        <div class="field"><label>Artist Name</label><input id="cfg-artistName" type="text"></div>
+        <div class="field"><label>Tagline</label><input id="cfg-tagline" type="text"></div>
+        <div class="field"><label>Est. Year</label><input id="cfg-estYear" type="text"></div>
+        <div class="field"><label>Coordinates</label><input id="cfg-coordinates" type="text"></div>
+      </div>
+    </div>
+
+    <div style="background:var(--card);border:1px solid var(--border);border-radius:6px;padding:28px;margin-bottom:20px">
+      <p style="font-family:'Space Mono',monospace;font-size:9px;letter-spacing:.24em;text-transform:uppercase;color:var(--tLo);margin-bottom:20px">About</p>
+      <div class="field"><label>Bio (Primary)</label><textarea id="cfg-bio" rows="4"></textarea></div>
+      <div class="field"><label>Bio (Secondary / small print)</label><textarea id="cfg-bioSecondary" rows="2"></textarea></div>
+      <div class="row-2">
+        <div class="field"><label>Photo Credit Line</label><input id="cfg-photoCreditLine" type="text"></div>
+        <div class="field"><label>Press Kit URL</label><input id="cfg-pressKitUrl" type="url" placeholder="https://..."></div>
+      </div>
+    </div>
+
+    <div style="background:var(--card);border:1px solid var(--border);border-radius:6px;padding:28px;margin-bottom:20px">
+      <p style="font-family:'Space Mono',monospace;font-size:9px;letter-spacing:.24em;text-transform:uppercase;color:var(--tLo);margin-bottom:20px">Booking</p>
+      <div class="row-2">
+        <div class="field"><label>Booking Email</label><input id="cfg-bookingEmail" type="email"></div>
+        <div class="field"><label>Service Region</label><input id="cfg-bookingRegion" type="text"></div>
+      </div>
+      <div class="field"><label>Footer Copyright</label><input id="cfg-footerCopyright" type="text"></div>
+    </div>
+
+    <div style="background:var(--card);border:1px solid var(--border);border-radius:6px;padding:28px;margin-bottom:20px">
+      <p style="font-family:'Space Mono',monospace;font-size:9px;letter-spacing:.24em;text-transform:uppercase;color:var(--tLo);margin-bottom:20px">Social Links</p>
+      <div class="row-2">
+        <div class="field"><label>SoundCloud URL</label><input id="cfg-sc" type="url" placeholder="https://soundcloud.com/..."></div>
+        <div class="field"><label>Instagram URL</label><input id="cfg-ig" type="url" placeholder="https://instagram.com/..."></div>
+        <div class="field"><label>Resident Advisor URL</label><input id="cfg-ra" type="url" placeholder="https://ra.co/..."></div>
+        <div class="field"><label>Bandcamp URL</label><input id="cfg-bc" type="url" placeholder="https://...bandcamp.com"></div>
+      </div>
+    </div>
+
+    <div class="btn-row">
+      <button class="btn btn-primary" onclick="saveAll()">Save Config</button>
+    </div>
+  </div>
+
+  <!-- ══ RELEASES ══ -->
+  <div id="tab-releases" class="section">
+    <p class="section-title">Releases / Discography</p>
+
+    <button class="add-btn" onclick="addRelease()">
+      <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.5"><line x1="7" y1="1" x2="7" y2="13"/><line x1="1" y1="7" x2="13" y2="7"/></svg>
+      Add Release
+    </button>
+
+    <div id="releases-list"></div>
+  </div>
+
+  <!-- ══ SPOTLIGHT ══ -->
+  <div id="tab-spotlight" class="section">
+    <p class="section-title">Spotlight — SoundCloud Players</p>
+    <p style="font-family:'Space Mono',monospace;font-size:10px;letter-spacing:.06em;color:var(--tLo);margin-bottom:6px;line-height:1.8">Paste any SoundCloud <strong style="color:var(--tMid)">track</strong> or <strong style="color:var(--tMid)">playlist/set</strong> URL. The site shows the real SoundCloud waveform player with play button — just like your profile.</p>
+    <p style="font-family:'Space Mono',monospace;font-size:9px;letter-spacing:.06em;color:var(--tFaint);margin-bottom:24px;line-height:1.8">Tip: open a track on SoundCloud, copy the address bar URL (e.g. <span style="color:var(--tLo)">soundcloud.com/osiris_techno_music/rushline1</span>).</p>
+
+    <button class="add-btn" onclick="addSpotlight()">
+      <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.5"><line x1="7" y1="1" x2="7" y2="13"/><line x1="1" y1="7" x2="13" y2="7"/></svg>
+      Add SoundCloud Player
+    </button>
+
+    <div id="spotlight-list-admin"></div>
+  </div>
+
+  <!-- ══ SHOWS ══ -->
+  <div id="tab-shows" class="section">
+    <p class="section-title">Upcoming Shows</p>
+
+    <button class="add-btn" onclick="addShow()">
+      <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.5"><line x1="7" y1="1" x2="7" y2="13"/><line x1="1" y1="7" x2="13" y2="7"/></svg>
+      Add Show
+    </button>
+
+    <div id="shows-list-admin"></div>
+  </div>
+
+  <!-- ══ MIXES ══ -->
+  <div id="tab-mixes" class="section">
+    <p class="section-title">Mixes / Transmissions</p>
+    <p style="font-family:'Space Mono',monospace;font-size:9px;letter-spacing:.14em;color:var(--tLo);margin-bottom:24px;text-transform:uppercase">Mark one mix as "Featured" to show it large at the top of the Listen section.</p>
+
+    <button class="add-btn" onclick="addMix()">
+      <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.5"><line x1="7" y1="1" x2="7" y2="13"/><line x1="1" y1="7" x2="13" y2="7"/></svg>
+      Add Mix
+    </button>
+
+    <div id="mixes-list-admin"></div>
+  </div>
+
+  <!-- ══ VIDEOS ══ -->
+  <div id="tab-videos" class="section">
+    <p class="section-title">Video / Live</p>
+
+    <button class="add-btn" onclick="addVideo()">
+      <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.5"><line x1="7" y1="1" x2="7" y2="13"/><line x1="1" y1="7" x2="13" y2="7"/></svg>
+      Add Video
+    </button>
+
+    <div id="videos-list-admin"></div>
+  </div>
+</main>
+
+<div class="toast" id="toast"></div>
+
+<script>
+let data = getOsirisData();
+
+// ─── Tab switching ───────────────────────────────────────────
+function switchTab(name) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+  event.target.classList.add('active');
+  document.getElementById('tab-' + name).classList.add('active');
+}
+
+// ─── Toast ───────────────────────────────────────────────────
+function toast(msg) {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.classList.add('show');
+  setTimeout(() => el.classList.remove('show'), 2200);
+}
+
+// ─── Unique ID ───────────────────────────────────────────────
+function uid() { return Math.random().toString(36).slice(2,9); }
+
+// ─── Save ────────────────────────────────────────────────────
+function saveAll() {
+  collectConfig();
+  collectReleases();
+  collectSpotlight();
+  collectShows();
+  collectMixes();
+  collectVideos();
+  saveOsirisData(data);
+  toast('Saved — reload the site to see changes.');
+}
+
+// ─── Reset ───────────────────────────────────────────────────
+function handleReset() {
+  if (!confirm('Reset all data to defaults? This cannot be undone.')) return;
+  data = resetOsirisData();
+  populateAll();
+  toast('Data reset to defaults.');
+}
+
+// ─── Config ──────────────────────────────────────────────────
+function populateConfig() {
+  const c = data.config;
+  document.getElementById('cfg-artistName').value = c.artistName || '';
+  document.getElementById('cfg-tagline').value = c.tagline || '';
+  document.getElementById('cfg-estYear').value = c.estYear || '';
+  document.getElementById('cfg-coordinates').value = c.coordinates || '';
+  document.getElementById('cfg-bio').value = c.bio || '';
+  document.getElementById('cfg-bioSecondary').value = c.bioSecondary || '';
+  document.getElementById('cfg-photoCreditLine').value = c.photoCreditLine || '';
+  document.getElementById('cfg-pressKitUrl').value = c.pressKitUrl || '';
+  document.getElementById('cfg-bookingEmail').value = c.bookingEmail || '';
+  document.getElementById('cfg-bookingRegion').value = c.bookingRegion || '';
+  document.getElementById('cfg-footerCopyright').value = c.footerCopyright || '';
+  document.getElementById('cfg-sc').value = c.socialLinks?.soundcloud || '';
+  document.getElementById('cfg-ig').value = c.socialLinks?.instagram || '';
+  document.getElementById('cfg-ra').value = c.socialLinks?.ra || '';
+  document.getElementById('cfg-bc').value = c.socialLinks?.bandcamp || '';
+}
+
+function collectConfig() {
+  data.config.artistName = document.getElementById('cfg-artistName').value.trim();
+  data.config.tagline = document.getElementById('cfg-tagline').value.trim();
+  data.config.estYear = document.getElementById('cfg-estYear').value.trim();
+  data.config.coordinates = document.getElementById('cfg-coordinates').value.trim();
+  data.config.bio = document.getElementById('cfg-bio').value.trim();
+  data.config.bioSecondary = document.getElementById('cfg-bioSecondary').value.trim();
+  data.config.photoCreditLine = document.getElementById('cfg-photoCreditLine').value.trim();
+  data.config.pressKitUrl = document.getElementById('cfg-pressKitUrl').value.trim();
+  data.config.bookingEmail = document.getElementById('cfg-bookingEmail').value.trim();
+  data.config.bookingRegion = document.getElementById('cfg-bookingRegion').value.trim();
+  data.config.footerCopyright = document.getElementById('cfg-footerCopyright').value.trim();
+  data.config.socialLinks = {
+    soundcloud: document.getElementById('cfg-sc').value.trim(),
+    instagram: document.getElementById('cfg-ig').value.trim(),
+    ra: document.getElementById('cfg-ra').value.trim(),
+    bandcamp: document.getElementById('cfg-bc').value.trim()
+  };
+}
+
+// ─── Releases ────────────────────────────────────────────────
+const ART_TYPES = ['circles','squares','crosshair','hexagon'];
+const ART_LABELS = { circles:'Circles', squares:'Squares', crosshair:'Crosshair', hexagon:'Hexagon' };
+const ART_SVG = {
+  circles: `<svg viewBox="0 0 40 40"><circle cx="20" cy="20" r="17" fill="none" stroke="#444" stroke-width=".6"/><circle cx="20" cy="20" r="12" fill="none" stroke="#333" stroke-width=".5"/><circle cx="20" cy="20" r="7" fill="#1a1a1a" stroke="#444" stroke-width=".5"/><circle cx="20" cy="20" r="2" fill="#c2453a"/></svg>`,
+  squares: `<svg viewBox="0 0 40 40"><rect x="4" y="4" width="32" height="32" fill="none" stroke="#444" stroke-width=".6"/><rect x="11" y="11" width="18" height="18" fill="none" stroke="#333" stroke-width=".5"/><rect x="17" y="17" width="6" height="6" fill="#c2453a" opacity=".6"/></svg>`,
+  crosshair: `<svg viewBox="0 0 40 40"><line x1="20" y1="2" x2="20" y2="38" stroke="#333" stroke-width=".5"/><line x1="2" y1="20" x2="38" y2="20" stroke="#333" stroke-width=".5"/><circle cx="20" cy="20" r="10" fill="none" stroke="#c2453a" stroke-width=".7" opacity=".6"/><circle cx="20" cy="20" r="4" fill="#1a1a1a" stroke="#444" stroke-width=".5"/></svg>`,
+  hexagon: `<svg viewBox="0 0 40 40"><polygon points="20,4 36,12 36,28 20,36 4,28 4,12" fill="none" stroke="#444" stroke-width=".6"/><polygon points="20,11 30,16 30,25 20,30 10,25 10,16" fill="none" stroke="#333" stroke-width=".5"/><circle cx="20" cy="21" r="2" fill="#c2453a" opacity=".7"/></svg>`
+};
+
+function renderReleases() {
+  const el = document.getElementById('releases-list');
+  el.innerHTML = data.releases.map((r, i) => `
+    <div class="item-card" id="rel-card-${r.id}">
+      <div class="item-card-header" onclick="toggleCard('rel-card-${r.id}')">
+        <div>
+          <h3>${r.title || 'Untitled Release'}</h3>
+          <div class="meta">${r.catalog || '—'} · ${r.label || '—'} · ${r.year || '—'}</div>
+        </div>
+        <div style="display:flex;align-items:center;gap:10px">
+          <button class="btn btn-danger btn-sm" onclick="event.stopPropagation();deleteItem('releases',${i})">Delete</button>
+          <span class="chevron">▼</span>
+        </div>
+      </div>
+      <div class="item-card-body">
+        <div class="row-3">
+          <div class="field"><label>Catalog #</label><input type="text" value="${esc(r.catalog)}" onchange="updateRelease(${i},'catalog',this.value)"></div>
+          <div class="field"><label>Title</label><input type="text" value="${esc(r.title)}" onchange="updateRelease(${i},'title',this.value)"></div>
+          <div class="field"><label>Year</label><input type="text" value="${esc(r.year)}" onchange="updateRelease(${i},'year',this.value)"></div>
+        </div>
+        <div class="row-2">
+          <div class="field"><label>Label</label><input type="text" value="${esc(r.label)}" onchange="updateRelease(${i},'label',this.value)"></div>
+          <div class="field"><label>SoundCloud / Link URL</label><input type="url" placeholder="https://soundcloud.com/..." value="${esc(r.url)}" onchange="updateRelease(${i},'url',this.value)"></div>
+        </div>
+        <div class="field">
+          <label>Cover Art Style</label>
+          <div class="art-grid">
+            ${ART_TYPES.map(t => `
+              <div class="art-opt ${r.artType===t?'selected':''}" onclick="updateRelease(${i},'artType','${t}');document.querySelectorAll('#rel-card-${r.id} .art-opt').forEach(o=>o.classList.remove('selected'));this.classList.add('selected')">
+                ${ART_SVG[t]}
+                <span>${ART_LABELS[t]}</span>
+              </div>`).join('')}
+          </div>
+        </div>
+      </div>
+    </div>`).join('');
+}
+
+function updateRelease(i, key, val) { data.releases[i][key] = val; }
+
+function addRelease() {
+  data.releases.push({ id: uid(), catalog: '', title: 'New Release', label: '', year: new Date().getFullYear()+'', url: '', artType: 'circles' });
+  renderReleases();
+  const cards = document.querySelectorAll('#releases-list .item-card');
+  const last = cards[cards.length-1];
+  if (last) { last.classList.add('open'); last.scrollIntoView({behavior:'smooth',block:'center'}); }
+}
+
+function collectReleases() {
+  // values already updated via onchange
+}
+
+// ─── Spotlight (SoundCloud embeds) ───────────────────────────
+function scLabel(url) {
+  if (!url) return 'Empty player';
+  const m = url.match(/soundcloud\.com\/([^/?#]+)(?:\/([^/?#]+))?(?:\/([^/?#]+))?/i);
+  if (!m) return url;
+  const isSet = /\/sets\//.test(url);
+  const slug = (m[3] && m[2] === 'sets') ? m[3] : m[2];
+  const name = (slug || m[1] || '').replace(/-/g,' ');
+  return (isSet ? 'Playlist · ' : 'Track · ') + (name || url);
+}
+
+function renderSpotlight() {
+  if (!Array.isArray(data.spotlight)) data.spotlight = [];
+  const el = document.getElementById('spotlight-list-admin');
+  el.innerHTML = data.spotlight.map((s, i) => {
+    const valid = /soundcloud\.com/i.test(s.url || '');
+    return `
+    <div class="item-card open" id="sp-card-${s.id}">
+      <div class="item-card-header" onclick="toggleCard('sp-card-${s.id}')">
+        <div>
+          <h3>${esc(scLabel(s.url))}</h3>
+          <div class="meta">${valid ? 'SoundCloud player' : '<span style=\"color:var(--ac)\">⚠ needs a SoundCloud URL</span>'}</div>
+        </div>
+        <div style="display:flex;align-items:center;gap:10px">
+          <button class="btn btn-danger btn-sm" onclick="event.stopPropagation();deleteItem('spotlight',${i})">Delete</button>
+          <span class="chevron">▼</span>
+        </div>
+      </div>
+      <div class="item-card-body">
+        <div class="field"><label>SoundCloud Track / Playlist URL</label><input type="url" placeholder="https://soundcloud.com/osiris_techno_music/rushline1" value="${esc(s.url)}" onchange="updateSpotlight(${i},'url',this.value);renderSpotlight()"></div>
+        ${valid ? `<div style="border:1px solid var(--border);border-radius:3px;overflow:hidden;background:#0a0a0a">
+          <iframe width="100%" height="${/\/sets\//.test(s.url)?320:300}" scrolling="no" frameborder="no" allow="autoplay" loading="lazy" src="https://w.soundcloud.com/player/?url=${encodeURIComponent(s.url)}&color=%23c2453a&auto_play=false&hide_related=true&show_comments=false&show_user=true&show_reposts=false&visual=true"></iframe>
+        </div>` : ''}
+      </div>
+    </div>`;
+  }).join('');
+  if (data.spotlight.length === 0) {
+    el.innerHTML = `<p style="font-family:'Space Mono',monospace;font-size:11px;color:var(--tFaint);padding:24px 4px;letter-spacing:.08em">No players yet. Click "Add SoundCloud Player" to embed a track.</p>`;
+  }
+}
+
+function updateSpotlight(i, key, val) { data.spotlight[i][key] = val.trim(); }
+
+function addSpotlight() {
+  if (!Array.isArray(data.spotlight)) data.spotlight = [];
+  data.spotlight.push({ id: uid(), url: '' });
+  renderSpotlight();
+  const cards = document.querySelectorAll('#spotlight-list-admin .item-card');
+  const last = cards[cards.length-1];
+  if (last) last.scrollIntoView({behavior:'smooth',block:'center'});
+}
+
+function collectSpotlight() {}
+
+// ─── Shows ───────────────────────────────────────────────────
+function renderShows() {
+  const el = document.getElementById('shows-list-admin');
+  el.innerHTML = data.shows.map((s, i) => `
+    <div class="item-card" id="show-card-${s.id}">
+      <div class="item-card-header" onclick="toggleCard('show-card-${s.id}')">
+        <div>
+          <h3>${s.venue || 'Untitled Show'}</h3>
+          <div class="meta">${s.date || '—'} · ${s.city || '—'}, ${s.country || '—'}</div>
+        </div>
+        <div style="display:flex;align-items:center;gap:10px">
+          <button class="btn btn-danger btn-sm" onclick="event.stopPropagation();deleteItem('shows',${i})">Delete</button>
+          <span class="chevron">▼</span>
+        </div>
+      </div>
+      <div class="item-card-body">
+        <div class="row-3">
+          <div class="field"><label>Date (display text)</label><input type="text" placeholder="27 JUN 26" value="${esc(s.date)}" onchange="updateShow(${i},'date',this.value)"></div>
+          <div class="field"><label>Venue</label><input type="text" value="${esc(s.venue)}" onchange="updateShow(${i},'venue',this.value)"></div>
+          <div class="field"><label>City</label><input type="text" value="${esc(s.city)}" onchange="updateShow(${i},'city',this.value)"></div>
+        </div>
+        <div class="row-3">
+          <div class="field"><label>Country Code</label><input type="text" placeholder="DE" maxlength="4" value="${esc(s.country)}" onchange="updateShow(${i},'country',this.value)"></div>
+          <div class="field"><label>Ticket URL (blank = use booking form)</label><input type="url" placeholder="leave empty for built-in form" value="${esc(s.ticketUrl)}" onchange="updateShow(${i},'ticketUrl',this.value)"></div>
+          <div class="field" style="display:flex;align-items:flex-end;padding-bottom:2px">
+            <label class="cb-wrap">
+              <input type="checkbox" ${s.soldOut?'checked':''} onchange="updateShow(${i},'soldOut',this.checked)">
+              <span>Sold Out</span>
+            </label>
+          </div>
+        </div>
+      </div>
+    </div>`).join('');
+}
+
+function updateShow(i, key, val) { data.shows[i][key] = val; }
+
+function addShow() {
+  data.shows.push({ id: uid(), date: '', venue: 'New Show', city: '', country: '', ticketUrl: '', soldOut: false });
+  renderShows();
+  const cards = document.querySelectorAll('#shows-list-admin .item-card');
+  const last = cards[cards.length-1];
+  if (last) { last.classList.add('open'); last.scrollIntoView({behavior:'smooth',block:'center'}); }
+}
+
+function collectShows() {}
+
+// ─── Mixes ───────────────────────────────────────────────────
+function renderMixes() {
+  const el = document.getElementById('mixes-list-admin');
+  el.innerHTML = data.mixes.map((m, i) => `
+    <div class="item-card" id="mix-card-${m.id}">
+      <div class="item-card-header" onclick="toggleCard('mix-card-${m.id}')">
+        <div>
+          <h3>${m.title || 'Untitled Mix'} ${m.featured ? '<span style="font-size:9px;color:var(--ac);letter-spacing:.1em;font-family:Space Mono,monospace;text-transform:uppercase;margin-left:8px">★ Featured</span>' : ''}</h3>
+          <div class="meta">${m.platform || '—'} · ${m.year || '—'} · ${m.duration || '—'}</div>
+        </div>
+        <div style="display:flex;align-items:center;gap:10px">
+          <button class="btn btn-danger btn-sm" onclick="event.stopPropagation();deleteItem('mixes',${i})">Delete</button>
+          <span class="chevron">▼</span>
+        </div>
+      </div>
+      <div class="item-card-body">
+        <div class="row-2">
+          <div class="field"><label>Title</label><input type="text" value="${esc(m.title)}" onchange="updateMix(${i},'title',this.value)"></div>
+          <div class="field"><label>Platform</label><input type="text" placeholder="SoundCloud, Fabric, RA..." value="${esc(m.platform)}" onchange="updateMix(${i},'platform',this.value)"></div>
+        </div>
+        <div class="row-3">
+          <div class="field"><label>Year</label><input type="text" value="${esc(m.year)}" onchange="updateMix(${i},'year',this.value)"></div>
+          <div class="field"><label>Duration</label><input type="text" placeholder="2:28:00" value="${esc(m.duration)}" onchange="updateMix(${i},'duration',this.value)"></div>
+          <div class="field" style="display:flex;align-items:flex-end;padding-bottom:2px">
+            <label class="cb-wrap">
+              <input type="checkbox" ${m.featured?'checked':''} onchange="setFeaturedMix(${i},this.checked)">
+              <span>Featured (large display)</span>
+            </label>
+          </div>
+        </div>
+        <div class="field"><label>SoundCloud / Link URL</label><input type="url" placeholder="https://soundcloud.com/..." value="${esc(m.url)}" onchange="updateMix(${i},'url',this.value)"></div>
+      </div>
+    </div>`).join('');
+}
+
+function updateMix(i, key, val) { data.mixes[i][key] = val; }
+
+function setFeaturedMix(i, val) {
+  data.mixes.forEach((m, idx) => { m.featured = idx === i ? val : false; });
+  renderMixes();
+}
+
+function addMix() {
+  data.mixes.push({ id: uid(), title: 'New Mix', platform: '', year: new Date().getFullYear()+'', duration: '', url: '', featured: false });
+  renderMixes();
+  const cards = document.querySelectorAll('#mixes-list-admin .item-card');
+  const last = cards[cards.length-1];
+  if (last) { last.classList.add('open'); last.scrollIntoView({behavior:'smooth',block:'center'}); }
+}
+
+function collectMixes() {}
+
+// ─── Videos ──────────────────────────────────────────────────
+function renderVideos() {
+  const el = document.getElementById('videos-list-admin');
+  el.innerHTML = data.videos.map((v, i) => `
+    <div class="item-card" id="vid-card-${v.id}">
+      <div class="item-card-header" onclick="toggleCard('vid-card-${v.id}')">
+        <div>
+          <h3>${v.title || 'Untitled Video'}</h3>
+          <div class="meta">${v.year || '—'}</div>
+        </div>
+        <div style="display:flex;align-items:center;gap:10px">
+          <button class="btn btn-danger btn-sm" onclick="event.stopPropagation();deleteItem('videos',${i})">Delete</button>
+          <span class="chevron">▼</span>
+        </div>
+      </div>
+      <div class="item-card-body">
+        <div class="row-2">
+          <div class="field"><label>Title</label><input type="text" value="${esc(v.title)}" onchange="updateVideo(${i},'title',this.value)"></div>
+          <div class="field"><label>Year</label><input type="text" value="${esc(v.year)}" onchange="updateVideo(${i},'year',this.value)"></div>
+        </div>
+        <div class="field"><label>YouTube / Link URL</label><input type="url" placeholder="https://youtube.com/..." value="${esc(v.url)}" onchange="updateVideo(${i},'url',this.value)"></div>
+      </div>
+    </div>`).join('');
+}
+
+function updateVideo(i, key, val) { data.videos[i][key] = val; }
+
+function addVideo() {
+  data.videos.push({ id: uid(), title: 'New Video', year: new Date().getFullYear()+'', url: '' });
+  renderVideos();
+  const cards = document.querySelectorAll('#videos-list-admin .item-card');
+  const last = cards[cards.length-1];
+  if (last) { last.classList.add('open'); last.scrollIntoView({behavior:'smooth',block:'center'}); }
+}
+
+function collectVideos() {}
+
+// ─── Shared helpers ──────────────────────────────────────────
+function toggleCard(id) {
+  document.getElementById(id)?.classList.toggle('open');
+}
+
+function deleteItem(type, i) {
+  const names = { releases:'release', spotlight:'player', shows:'show', mixes:'mix', videos:'video' };
+  if (!confirm('Delete this ' + names[type] + '?')) return;
+  data[type].splice(i, 1);
+  const renders = { releases: renderReleases, spotlight: renderSpotlight, shows: renderShows, mixes: renderMixes, videos: renderVideos };
+  renders[type]();
+  toast('Deleted. Click Save All to persist.');
+}
+
+function esc(str) {
+  return (str || '').replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;');
+}
+
+// ─── Init ────────────────────────────────────────────────────
+function populateAll() {
+  populateConfig();
+  renderReleases();
+  renderSpotlight();
+  renderShows();
+  renderMixes();
+  renderVideos();
+}
+
+populateAll();
+</script>
+</body>
+</html>
